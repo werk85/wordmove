@@ -1,7 +1,7 @@
 module Wordmove
   class Hook
     def self.logger
-      Logger.new(STDOUT).tap { |l| l.level = Logger::DEBUG }
+      Logger.new($stdout).tap { |l| l.level = Logger::DEBUG }
     end
 
     # rubocop:disable Metrics/MethodLength

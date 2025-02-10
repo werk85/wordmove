@@ -82,10 +82,11 @@ module Wordmove
                  end
 
         schema = if Gem::Version.new(YAML::VERSION) >= Gem::Version.new('4.0')
-          Kwalify::Yaml.load_file("#{__dir__}/../assets/wordmove_schema_#{suffix}.yml", permitted_classes: [], permitted_symbols: [], aliases: true)
-        else
-          Kwalify::Yaml.load_file("#{__dir__}/../assets/wordmove_schema_#{suffix}.yml")
-        end
+                   Kwalify::Yaml.load_file("#{__dir__}/../assets/wordmove_schema_#{suffix}.yml",
+                                           permitted_classes: [], permitted_symbols: [], aliases: true)
+                 else
+                   Kwalify::Yaml.load_file("#{__dir__}/../assets/wordmove_schema_#{suffix}.yml")
+                 end
 
         Kwalify::Validator.new(schema)
       end

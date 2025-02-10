@@ -1,9 +1,7 @@
 module Wordmove
   module Deployer
     class Base
-      attr_reader :options
-      attr_reader :logger
-      attr_reader :environment
+      attr_reader :options, :logger, :environment
 
       class << self
         def deployer_for(cli_options)
@@ -31,7 +29,7 @@ module Wordmove
         end
 
         def logger(secrets)
-          Logger.new(STDOUT, secrets).tap { |l| l.level = Logger::DEBUG }
+          Logger.new($stdout, secrets).tap { |l| l.level = Logger::DEBUG }
         end
       end
 

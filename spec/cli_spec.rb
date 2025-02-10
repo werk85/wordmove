@@ -99,7 +99,7 @@ describe Wordmove::CLI do
           end
           expect(deployer).to_not receive("pull_db")
 
-          silence_stream(STDOUT) { cli.invoke(:pull, [], options) }
+          silence_stream($stdout) { cli.invoke(:pull, [], options) }
         end
       end
     end
@@ -123,7 +123,7 @@ describe Wordmove::CLI do
           end
           expect(deployer).to_not receive("push_db")
 
-          silence_stream(STDOUT) { cli.invoke(:push, [], options) }
+          silence_stream($stdout) { cli.invoke(:push, [], options) }
         end
       end
     end

@@ -41,28 +41,26 @@ module Wordmove
 
       def serialized_replace!(source_field, dest_field)
         length_delta = source_field.length - dest_field.length
-      
-        sql_content.gsub!(/s:(\d+):([\\]*['"])(.*?)\2;/) do |match|
-          begin
-            length = Regexp.last_match(1).to_i
-            delimiter = Regexp.last_match(2)
-            string = Regexp.last_match(3)
-      
-            # Check if string is valid UTF-8 and doesn't contain binary data
-            if string.force_encoding('UTF-8').valid_encoding? && !string.include?("\x00")
-              string.gsub!(/#{Regexp.escape(source_field)}/) do |_|
-                length -= length_delta
-                dest_field
-              end
-              %(s:#{length}:#{delimiter}#{string}#{delimiter};)
-            else
-              # Return original match if string contains invalid UTF-8 or binary data
-              match
+
+        sql_content.gsub!(/s:(\d+):(\\*['"])(.*?)\2;/) do |match|
+          length = Regexp.last_match(1).to_i
+          delimiter = Regexp.last_match(2)
+          string = Regexp.last_match(3)
+
+          # Check if string is valid UTF-8 and doesn't contain binary data
+          if string.force_encoding('UTF-8').valid_encoding? && !string.include?("\x00")
+            string.gsub!(/#{Regexp.escape(source_field)}/) do |_|
+              length -= length_delta
+              dest_field
             end
-          rescue
-            # Return original match if any error occurs during processing
+            %(s:#{length}:#{delimiter}#{string}#{delimiter};)
+          else
+            # Return original match if string contains invalid UTF-8 or binary data
             match
           end
+        rescue StandardError
+          # Return original match if any error occurs during processing
+          match
         end
       end
 

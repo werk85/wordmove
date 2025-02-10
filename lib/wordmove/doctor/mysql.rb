@@ -4,11 +4,11 @@ module Wordmove
       attr_reader :config, :logger
 
       def initialize(movefile_name = nil, movefile_dir = '.')
-        @logger = Logger.new(STDOUT).tap { |l| l.level = Logger::INFO }
+        @logger = Logger.new($stdout).tap { |l| l.level = Logger::INFO }
         begin
           @config = Wordmove::Movefile.new(movefile_name, movefile_dir).fetch[:local][:database]
         rescue Psych::SyntaxError
-          return
+          nil
         end
       end
 

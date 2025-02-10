@@ -206,7 +206,7 @@ describe Wordmove::Hook do
 
         it "raises a RemoteHookException" do
           expect do
-            silence_stream(STDOUT) do
+            silence_stream($stdout) do
               cli.invoke(:pull, [], options)
             end
           end.to raise_exception(Wordmove::RemoteHookException)
@@ -222,7 +222,7 @@ describe Wordmove::Hook do
           expect(Wordmove::Hook::Remote)
             .to_not receive(:run)
 
-          silence_stream(STDOUT) do
+          silence_stream($stdout) do
             cli.invoke(:push, [], options)
           end
         end
@@ -238,7 +238,7 @@ describe Wordmove::Hook do
         expect(Wordmove::Hook::Local)
           .to_not receive(:run)
 
-        silence_stream(STDOUT) do
+        silence_stream($stdout) do
           cli.invoke(:push, [], options)
         end
       end

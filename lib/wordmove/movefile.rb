@@ -3,7 +3,7 @@ module Wordmove
     attr_reader :logger, :name, :start_dir
 
     def initialize(name = nil, start_dir = current_dir)
-      @logger = Logger.new(STDOUT).tap { |l| l.level = Logger::DEBUG }
+      @logger = Logger.new($stdout).tap { |l| l.level = Logger::DEBUG }
       @name = name
       @start_dir = start_dir
     end
@@ -28,10 +28,11 @@ module Wordmove
       found = entries.first
       logger.task("Using Movefile: #{found}") if verbose == true
       content = if Gem::Version.new(YAML::VERSION) >= Gem::Version.new('4.0')
-        YAML.safe_load(ERB.new(File.read(found)).result, permitted_classes: [], permitted_symbols: [], aliases: true)
-      else
-        YAML.safe_load(ERB.new(File.read(found)).result, [], [], true)
-      end
+                  YAML.safe_load(ERB.new(File.read(found)).result, permitted_classes: [],
+                                                                   permitted_symbols: [], aliases: true)
+                else
+                  YAML.safe_load(ERB.new(File.read(found)).result, [], [], true)
+                end
 
       content.deep_symbolize_keys!
     end
@@ -61,11 +62,9 @@ module Wordmove
           )
         end
 
-        if options[:environment].present?
-          unless available_enviroments.include?(options[:environment].to_sym)
-            raise UndefinedEnvironment, "No environment found for \"#{options[:environment]}\". "\
-                                        "Available Environments: #{available_enviroments.join(' ')}"
-          end
+        if options[:environment].present? && !available_enviroments.include?(options[:environment].to_sym)
+          raise UndefinedEnvironment, "No environment found for \"#{options[:environment]}\". "\
+                                      "Available Environments: #{available_enviroments.join(' ')}"
         end
       end
 

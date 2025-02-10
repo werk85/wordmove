@@ -53,7 +53,7 @@ module Wordmove
       end
 
       def logger
-        Logger.new(STDOUT).tap { |l| l.level = Logger::DEBUG }
+        Logger.new($stdout).tap { |l| l.level = Logger::DEBUG }
       end
     end
 
