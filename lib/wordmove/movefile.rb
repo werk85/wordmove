@@ -27,7 +27,13 @@ module Wordmove
 
       found = entries.first
       logger.task("Using Movefile: #{found}") if verbose == true
-      YAML.safe_load(ERB.new(File.read(found)).result, [], [], true).deep_symbolize_keys!
+      content = if Gem::Version.new(YAML::VERSION) >= Gem::Version.new('4.0')
+        YAML.safe_load(ERB.new(File.read(found)).result, permitted_classes: [], permitted_symbols: [], aliases: true)
+      else
+        YAML.safe_load(ERB.new(File.read(found)).result, [], [], true)
+      end
+
+      content.deep_symbolize_keys!
     end
 
     def load_dotenv(cli_options = {})

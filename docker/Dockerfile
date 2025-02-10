@@ -1,4 +1,4 @@
-FROM ruby:3.4-slim-bookworm
+FROM ruby:3.2-slim-bookworm
 
 LABEL maintainer="martin@werk85.de"
 
@@ -9,7 +9,7 @@ WORKDIR /html
 RUN apt-get update && apt-get install -y \
     openssh-client \
     rsync \
-    mysql-client \
+    default-mysql-client \
     curl \
     php-cli \
     php-mysql \
@@ -18,6 +18,9 @@ RUN apt-get update && apt-get install -y \
     lftp \
     build-essential \
     git \
+    libffi-dev \
+    pkg-config \
+    libyaml-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install WP-CLI
@@ -37,4 +40,4 @@ RUN bundle install \
     && gem install pkg/wordmove-*.gem
 
 ENTRYPOINT ["wordmove"]
-CMD ["help"] 
+CMD ["help"]

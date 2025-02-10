@@ -32,18 +32,22 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "activesupport", '~> 6.1'
   spec.add_runtime_dependency "colorize", "~> 0.8.1"
   spec.add_runtime_dependency "dotenv", "~> 2.7.5"
+  spec.add_runtime_dependency "fiddle", "~> 1.1.1"
+  spec.add_runtime_dependency "irb", "~> 1.11.2"
   spec.add_runtime_dependency "kwalify", "~> 0"
+  spec.add_runtime_dependency "ostruct", "~> 0.6.0"
   spec.add_runtime_dependency "photocopier", "~> 1.4", ">= 1.4.0"
-  spec.add_runtime_dependency "thor", "~> 0.20.3"
+  spec.add_runtime_dependency "reline", "~> 0.4.2"
+  spec.add_runtime_dependency "thor", "~> 1.3.0"
 
-  spec.required_ruby_version = ">= 2.6.0"
+  spec.required_ruby_version = ">= 3.0.0"
 
   spec.add_development_dependency "bundler", "~> 2.0"
   spec.add_development_dependency "priscilla", "~> 1.0"
   spec.add_development_dependency "pry-byebug", "~> 3.1"
   spec.add_development_dependency "rake", "~> 13.0.1"
-  spec.add_development_dependency "rspec", "~> 3.9"
-  spec.add_development_dependency "rubocop", "~> 0.76.0"
+  spec.add_development_dependency "rspec", "~> 3.13"
+  spec.add_development_dependency "rubocop", "~> 1.62.0"
   spec.add_development_dependency "simplecov", "~> 0.17.1"
 
   spec.post_install_message = <<-RAINBOW

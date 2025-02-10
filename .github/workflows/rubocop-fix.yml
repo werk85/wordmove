@@ -1,0 +1,40 @@
+name: RuboCop Auto-fix
+
+on:
+  workflow_dispatch: # Manual trigger
+  schedule:
+    - cron: "0 0 * * 0" # Weekly on Sundays
+
+jobs:
+  rubocop-fix:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2.2
+          bundler-cache: true
+
+      - name: Install dependencies
+        run: bundle install
+
+      - name: Run RuboCop with auto-correct
+        run: bundle exec rubocop -A
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "style: Auto-fix RuboCop issues"
+          title: "style: Fix RuboCop issues"
+          body: |
+            Auto-generated PR to fix RuboCop style issues.
+
+            Changes made by RuboCop's auto-correct feature.
+          branch: fix/rubocop-style
+          delete-branch: true
+          labels: |
+            style
+            automated pr

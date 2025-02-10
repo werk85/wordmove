@@ -66,3 +66,5 @@ module Wordmove
     end
   end
 end
+
+@logger = Logger.new($stdout).tap { |l| l.level = Logger::DEBUG }
