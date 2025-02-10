@@ -110,9 +110,18 @@ describe Wordmove::SqlAdapter::Default do
 
   context ".replace_field!" do
     it "should replace source vhost with dest vhost" do
-      expect(adapter).to receive(:serialized_replace!).ordered.with("DUMP", "FUNK").and_return(true)
-      expect(adapter).to receive(:simple_replace!).ordered.with("DUMP", "FUNK").and_return(true)
-      adapter.replace_field!("DUMP", "FUNK")
+      # Create a temp file for testing
+      sql_path = Tempfile.new('test.sql').path
+      source_config = { vhost: 'http://source.com' }
+      dest_config = { vhost: 'http://dest.com' }
+      
+      # Write test content to the file
+      File.write(sql_path, "some content with http://source.com in it")
+      
+      adapter = described_class.new(sql_path, source_config, dest_config)
+      adapter.replace_field!(source_config[:vhost], dest_config[:vhost])
+      
+      expect(adapter.sql_content).to include('http://dest.com')
     end
   end
 

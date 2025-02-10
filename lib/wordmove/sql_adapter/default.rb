@@ -11,7 +11,14 @@ module Wordmove
       end
 
       def sql_content
-        @sql_content ||= File.open(sql_path).read
+        @sql_content ||= begin
+          content = File.open(sql_path, 'rb').read
+          # Try UTF-8 first
+          content.force_encoding('UTF-8')
+          # Fall back to binary if not valid UTF-8
+          content.force_encoding('BINARY') unless content.valid_encoding?
+          content
+        end
       end
 
       def adapt!
@@ -35,6 +42,13 @@ module Wordmove
       def replace_field!(source_field, dest_field)
         return false unless source_field && dest_field
 
+        # Ensure sql_content is loaded
+        self.sql_content unless @sql_content
+
+        # Ensure source and dest fields match the content encoding
+        source_field = source_field.dup.force_encoding(@sql_content.encoding)
+        dest_field = dest_field.dup.force_encoding(@sql_content.encoding)
+
         serialized_replace!(source_field, dest_field)
         simple_replace!(source_field, dest_field)
       end
@@ -47,20 +61,25 @@ module Wordmove
           delimiter = Regexp.last_match(2)
           string = Regexp.last_match(3)
 
-          # Check if string is valid UTF-8 and doesn't contain binary data
-          if string.force_encoding('UTF-8').valid_encoding? && !string.include?("\x00")
-            string.gsub!(/#{Regexp.escape(source_field)}/) do |_|
-              length -= length_delta
-              dest_field
+          # Force all parts to the same encoding as sql_content
+          string = string.dup.force_encoding(@sql_content.encoding)
+          source_pattern = Regexp.escape(source_field).force_encoding(@sql_content.encoding)
+          dest_field_encoded = dest_field.dup.force_encoding(@sql_content.encoding)
+
+          begin
+            if string.include?(source_field)
+              string.gsub!(/#{source_pattern}/) do |_|
+                length -= length_delta
+                dest_field_encoded
+              end
+              %(s:#{length}:#{delimiter}#{string}#{delimiter};)
+            else
+              match
             end
-            %(s:#{length}:#{delimiter}#{string}#{delimiter};)
-          else
-            # Return original match if string contains invalid UTF-8 or binary data
+          rescue StandardError => e
+            # Return original match if any error occurs
             match
           end
-        rescue StandardError
-          # Return original match if any error occurs during processing
-          match
         end
       end
 
