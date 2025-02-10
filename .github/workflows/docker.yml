@@ -36,5 +36,7 @@ jobs:
           tags: |
             siriwan/wordmove:latest
             siriwan/wordmove:${{ github.sha }}
+            siriwan/wordmove:php8.2
+            siriwan/wordmove:php8.2-${{ github.sha }}
           cache-from: type=registry,ref=siriwan/wordmove:latest
           cache-to: type=inline

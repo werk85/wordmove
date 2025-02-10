@@ -1,3 +1,5 @@
+require 'net/http'
+
 module Wordmove
   module Deployer
     class Base
@@ -13,13 +15,9 @@ module Wordmove
 
           return FTP.new(environment, options) if options[environment][:ftp]
 
-          if options[environment][:ssh] && options[:global][:sql_adapter] == 'wpcli'
-            return Ssh::WpcliSqlAdapter.new(environment, options)
-          end
+          return Ssh::WpcliSqlAdapter.new(environment, options) if options[environment][:ssh] && options[:global][:sql_adapter] == 'wpcli'
 
-          if options[environment][:ssh] && options[:global][:sql_adapter] == 'default'
-            return Ssh::DefaultSqlAdapter.new(environment, options)
-          end
+          return Ssh::DefaultSqlAdapter.new(environment, options) if options[environment][:ssh] && options[:global][:sql_adapter] == 'default'
 
           raise NoAdapterFound, "No valid adapter found."
         end
@@ -94,12 +92,21 @@ module Wordmove
       end
 
       def download(url, local_path)
-        logger.task_step true, "download #{url} > #{local_path}"
+        logger.task("Downloading #{url}")
 
-        return true if simulate?
+        uri = URI(url)
+        Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
+          request = Net::HTTP::Get.new(uri)
 
-        File.open(local_path, 'w') do |file|
-          file << URI.open(url).read
+          http.request(request) do |response|
+            raise "Failed to download file: #{response.code} #{response.message}" unless response.is_a?(Net::HTTPSuccess)
+
+            File.open(local_path, 'wb') do |file|
+              response.read_body do |chunk|
+                file.write(chunk)
+              end
+            end
+          end
         end
       end
 
@@ -128,13 +135,9 @@ module Wordmove
         command << "--host=#{Shellwords.escape(options[:host])}" if options[:host].present?
         command << "--port=#{Shellwords.escape(options[:port])}" if options[:port].present?
         command << "--user=#{Shellwords.escape(options[:user])}" if options[:user].present?
-        if options[:password].present?
-          command << "--password=#{Shellwords.escape(options[:password])}"
-        end
+        command << "--password=#{Shellwords.escape(options[:password])}" if options[:password].present?
         command << "--result-file=\"#{save_to_path}\""
-        if options[:mysqldump_options].present?
-          command << Shellwords.split(options[:mysqldump_options])
-        end
+        command << Shellwords.split(options[:mysqldump_options]) if options[:mysqldump_options].present?
         command << Shellwords.escape(options[:name])
         command.join(" ")
       end
@@ -144,9 +147,7 @@ module Wordmove
         command << "--host=#{Shellwords.escape(options[:host])}" if options[:host].present?
         command << "--port=#{Shellwords.escape(options[:port])}" if options[:port].present?
         command << "--user=#{Shellwords.escape(options[:user])}" if options[:user].present?
-        if options[:password].present?
-          command << "--password=#{Shellwords.escape(options[:password])}"
-        end
+        command << "--password=#{Shellwords.escape(options[:password])}" if options[:password].present?
         command << "--database=#{Shellwords.escape(options[:name])}"
         command << Shellwords.split(options[:mysql_options]) if options[:mysql_options].present?
         command << "--execute=\"SET autocommit=0;SOURCE #{dump_path};COMMIT\""

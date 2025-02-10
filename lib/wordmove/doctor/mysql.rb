@@ -83,9 +83,7 @@ module Wordmove
         command << "--host=#{Shellwords.escape(config[:host])}" if config[:host].present?
         command << "--port=#{Shellwords.escape(config[:port])}" if config[:port].present?
         command << "--user=#{Shellwords.escape(config[:user])}" if config[:user].present?
-        if config[:password].present?
-          command << "--password=#{Shellwords.escape(config[:password])}"
-        end
+        command << "--password=#{Shellwords.escape(config[:password])}" if config[:password].present?
         command << database if database.present?
         command << "-e'QUIT'"
         command.join(" ")

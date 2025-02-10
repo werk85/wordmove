@@ -114,13 +114,13 @@ describe Wordmove::SqlAdapter::Default do
       sql_path = Tempfile.new('test.sql').path
       source_config = { vhost: 'http://source.com' }
       dest_config = { vhost: 'http://dest.com' }
-      
+
       # Write test content to the file
       File.write(sql_path, "some content with http://source.com in it")
-      
+
       adapter = described_class.new(sql_path, source_config, dest_config)
       adapter.replace_field!(source_config[:vhost], dest_config[:vhost])
-      
+
       expect(adapter.sql_content).to include('http://dest.com')
     end
   end

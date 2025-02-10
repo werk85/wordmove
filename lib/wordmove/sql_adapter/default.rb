@@ -43,7 +43,7 @@ module Wordmove
         return false unless source_field && dest_field
 
         # Ensure sql_content is loaded
-        self.sql_content unless @sql_content
+        sql_content unless @sql_content
 
         # Ensure source and dest fields match the content encoding
         source_field = source_field.dup.force_encoding(@sql_content.encoding)
@@ -76,7 +76,7 @@ module Wordmove
             else
               match
             end
-          rescue StandardError => e
+          rescue StandardError
             # Return original match if any error occurs
             match
           end

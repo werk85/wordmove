@@ -34,7 +34,6 @@ module Wordmove
       ssh_doctor.check!
     end
 
-    # rubocop:disable Metrics/MethodLength
     def self.banner
       paint = <<-'ASCII'
         .------------------------.
@@ -63,6 +62,5 @@ module Wordmove
 
       puts paint
     end
-    # rubocop:enable Metrics/MethodLength
   end
 end

@@ -19,14 +19,22 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     git \
     libffi-dev \
+    libffi8 \
     pkg-config \
     libyaml-dev \
+    ssl-cert \
+    libsodium-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install WP-CLI
 RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
     && chmod +x wp-cli.phar \
     && mv wp-cli.phar /usr/local/bin/wp
+
+# Install SSH-related gems for better key support
+RUN gem install ed25519 -v "<2" && \
+    gem install bcrypt_pbkdf -v "<2" && \
+    gem install net-ssh
 
 # Copy the gemspec and Gemfile
 COPY wordmove.gemspec Gemfile ./

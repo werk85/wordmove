@@ -11,9 +11,7 @@ module Wordmove
       end
 
       def command
-        unless wp_in_path?
-          raise UnmetPeerDependencyError, "WP-CLI is not installed or not in your $PATH"
-        end
+        raise UnmetPeerDependencyError, "WP-CLI is not installed or not in your $PATH" unless wp_in_path?
 
         opts = [
           "--path=#{cli_config_path}",
