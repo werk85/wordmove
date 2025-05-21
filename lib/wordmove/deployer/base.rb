@@ -83,12 +83,16 @@ module Wordmove
         remote_options[:exclude] || []
       end
 
-      def run(command)
-        logger.task_step true, command
-        return true if simulate?
-
-        system(command)
-        raise ShellCommandError, "Return code reports an error" unless $CHILD_STATUS.success?
+      def run(cmd)
+        if cmd.nil? || cmd.empty?
+          logger.error("Empty command passed to run method")
+          return false
+        end
+        
+        logger.task(cmd)
+        unless simulate?
+          system(cmd.to_s) || raise("Error executing command: #{cmd}")
+        end
       end
 
       def download(url, local_path)

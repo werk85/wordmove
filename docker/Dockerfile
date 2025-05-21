@@ -1,4 +1,4 @@
-FROM ruby:3.2-slim-bookworm
+FROM ruby:3.1-bullseye
 
 LABEL maintainer="martin@werk85.de"
 
@@ -6,20 +6,23 @@ ENV WORDMOVE_WORKDIR="/html"
 WORKDIR /html
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && \
+    apt-get install -y curl apt-transport-https ca-certificates gnupg2 && \
+    curl -sSL https://packages.sury.org/php/apt.gpg | apt-key add - && \
+    echo "deb https://packages.sury.org/php/ bullseye main" | tee /etc/apt/sources.list.d/php.list && \
+    apt-get update && \
+    apt-get install -y \
     openssh-client \
     rsync \
     default-mysql-client \
-    curl \
-    php-cli \
-    php-mysql \
-    php-curl \
-    php-xml \
+    php8.2-cli \
+    php8.2-mysql \
+    php8.2-curl \
+    php8.2-xml \
     lftp \
     build-essential \
     git \
     libffi-dev \
-    libffi8 \
     pkg-config \
     libyaml-dev \
     ssl-cert \
