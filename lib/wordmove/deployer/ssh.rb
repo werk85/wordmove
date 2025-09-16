@@ -20,10 +20,10 @@ module Wordmove
         end
 
         @copier = if options[:"experimental-db"]
-                     Wordmove::Deployer::SystemAdapter.new(ssh_options).tap { |c| c.logger = logger }
-                   else
-                     Photocopier::SSH.new(ssh_options).tap { |c| c.logger = logger }
-                   end
+                    Wordmove::Deployer::SystemAdapter.new(ssh_options).tap { |c| c.logger = logger }
+                  else
+                    Photocopier::SSH.new(ssh_options).tap { |c| c.logger = logger }
+                  end
 
         @local_dump_path = local_wp_content_dir.path("dump.sql")
         @local_backup_path = local_wp_content_dir.path("local-backup-#{Time.now.to_i}.sql")

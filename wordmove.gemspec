@@ -22,8 +22,8 @@ Gem::Specification.new do |spec|
   spec.license       = "MIT"
 
   spec.files         = Dir.glob("**/*")
-                       .select { |f| f.match(%r{^(lib|exe)/}) || f.match(%r{^(wordmove\.gemspec|LICENSE|Rakefile)$}) }
-                       .reject { |f| File.directory?(f) }
+                          .select { |f| f.match(%r{^(lib|exe)/}) || f.match(/^(wordmove\.gemspec|LICENSE|Rakefile)$/) }
+                          .reject { |f| File.directory?(f) }
 
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }

@@ -25,7 +25,7 @@ describe Wordmove::Deployer::SystemAdapter do
 
       mock_status = double('Process::Status', success?: true, exitstatus: 0)
       expect(Open3).to receive(:capture3).with(expected_ssh_command)
-                          .and_return(['stdout', 'stderr', mock_status])
+                                         .and_return(['stdout', 'stderr', mock_status])
 
       result = adapter.exec!(command)
       expect(result).to eq(['stdout', 'stderr', 0])
@@ -37,7 +37,7 @@ describe Wordmove::Deployer::SystemAdapter do
 
       mock_status = double('Process::Status', success?: true, exitstatus: 0)
       expect(Open3).to receive(:capture3).with(expected_ssh_command)
-                          .and_return(['', '', mock_status])
+                                         .and_return(['', '', mock_status])
 
       adapter.exec!(command)
     end
@@ -118,7 +118,7 @@ describe Wordmove::Deployer::SystemAdapter do
 
       mock_status = double('Process::Status', success?: true, exitstatus: 0)
       expect(Open3).to receive(:capture3).with(expected_ssh_command)
-                          .and_return(['', '', mock_status])
+                                         .and_return(['', '', mock_status])
 
       adapter.exec!(command)
     end
@@ -149,7 +149,7 @@ describe Wordmove::Deployer::SystemAdapter do
 
       mock_status = double('Process::Status', success?: true, exitstatus: 0)
       expect(Open3).to receive(:capture3).with(expected_ssh_command)
-                          .and_return(['', '', mock_status])
+                                         .and_return(['', '', mock_status])
 
       adapter.exec!(command)
     end
