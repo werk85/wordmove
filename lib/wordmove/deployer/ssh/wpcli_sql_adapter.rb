@@ -7,11 +7,19 @@ module Wordmove
         end
 
         def adapt_local_db!
+          local_dump_path = local_dump_path_sql
+          local_gzipped_dump_path = "#{local_dump_path}.gz"
+          local_search_replace_dump_path = local_wp_content_dir.path("search_replace_dump.sql")
+
+          unless local_options && remote_options && local_options[:wordpress_path] && remote_options[:vhost]
+            logger.error("Missing required options for database push. Check your Movefile configuration.")
+            return false
+          end
+
           save_local_db(local_dump_path)
           run wpcli_search_replace(local_options, remote_options, :vhost)
           run wpcli_search_replace(local_options, remote_options, :wordpress_path)
 
-          local_search_replace_dump_path = local_wp_content_dir.path("search_replace_dump.sql")
           local_gzipped_search_replace_dump_path = "#{local_search_replace_dump_path}.gz"
 
           save_local_db(local_search_replace_dump_path)
@@ -48,6 +56,10 @@ module Wordmove
           logger.task_step true, "adapt dump for #{config_key}"
           path = local_options[:wordpress_path]
           SqlAdapter::Wpcli.new(local, remote, config_key, path).command unless simulate?
+        end
+
+        def local_dump_path_sql
+          @local_dump_path
         end
       end
     end
