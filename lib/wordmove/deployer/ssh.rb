@@ -1,4 +1,5 @@
 require 'pathname'
+require_relative 'ssh/system_adapter'
 
 module Wordmove
   module Deployer
@@ -18,7 +19,11 @@ module Wordmove
           ssh_options[:rsync_options] = "--dry-run"
         end
 
-        @copier = Photocopier::SSH.new(ssh_options).tap { |c| c.logger = logger }
+        @copier = if options[:"experimental-db"]
+                     Wordmove::Deployer::SystemAdapter.new(ssh_options).tap { |c| c.logger = logger }
+                   else
+                     Photocopier::SSH.new(ssh_options).tap { |c| c.logger = logger }
+                   end
 
         @local_dump_path = local_wp_content_dir.path("dump.sql")
         @local_backup_path = local_wp_content_dir.path("local-backup-#{Time.now.to_i}.sql")

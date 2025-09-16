@@ -88,11 +88,11 @@ module Wordmove
           logger.error("Empty command passed to run method")
           return false
         end
-        
+
         logger.task(cmd)
-        unless simulate?
-          system(cmd.to_s) || raise("Error executing command: #{cmd}")
-        end
+        return if simulate?
+
+        system(cmd.to_s) || raise("Error executing command: #{cmd}")
       end
 
       def download(url, local_path)

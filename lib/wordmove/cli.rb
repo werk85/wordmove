@@ -31,7 +31,8 @@ module Wordmove
       config: { aliases: "-c" },
       debug: { type: :boolean },
       no_adapt: { type: :boolean },
-      all: { type: :boolean }
+      all: { type: :boolean },
+      "experimental-db" => { type: :boolean }
     }
 
     no_tasks do

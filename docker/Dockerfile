@@ -45,10 +45,15 @@ COPY wordmove.gemspec Gemfile ./
 # Copy the whole project
 COPY . .
 
-# Install the gem from source
+# Install dependencies and build wordmove gem
 RUN bundle install \
     && rake build \
     && gem install pkg/wordmove-*.gem
 
-ENTRYPOINT ["wordmove"]
+# Create a wrapper script for backward compatibility
+RUN echo '#!/bin/sh\nexec bundle exec wordmove "$@"' > /usr/local/bin/wordmove \
+    && chmod +x /usr/local/bin/wordmove
+
+# Set the entrypoint to run wordmove from bundle
+ENTRYPOINT ["bundle", "exec", "wordmove"]
 CMD ["help"]

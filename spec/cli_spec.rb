@@ -142,4 +142,28 @@ describe Wordmove::CLI do
       end
     end
   end
+
+  context "--experimental-db" do
+    let(:options) { { "experimental-db" => true, config: movefile_path_for('Movefile') } }
+
+    context "#pull" do
+      it "passes experimental_db flag to deployer" do
+        expect(Wordmove::Deployer::Base).to receive(:deployer_for)
+          .with(hash_including("experimental-db" => true))
+          .and_return(deployer)
+
+        cli.invoke(:pull, [], options)
+      end
+    end
+
+    context "#push" do
+      it "passes experimental_db flag to deployer" do
+        expect(Wordmove::Deployer::Base).to receive(:deployer_for)
+          .with(hash_including("experimental-db" => true))
+          .and_return(deployer)
+
+        cli.invoke(:push, [], options)
+      end
+    end
+  end
 end

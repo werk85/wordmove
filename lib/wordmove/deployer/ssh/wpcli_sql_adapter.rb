@@ -8,7 +8,6 @@ module Wordmove
 
         def adapt_local_db!
           local_dump_path = local_dump_path_sql
-          local_gzipped_dump_path = "#{local_dump_path}.gz"
           local_search_replace_dump_path = local_wp_content_dir.path("search_replace_dump.sql")
 
           unless local_options && remote_options && local_options[:wordpress_path] && remote_options[:vhost]
@@ -48,6 +47,16 @@ module Wordmove
 
         def after_pull_cleanup!
           local_delete(local_dump_path)
+        end
+
+        private
+
+        def local_dump_path
+          @local_dump_path ||= local_wp_content_dir.path("dump.sql")
+        end
+
+        def local_gzipped_dump_path
+          "#{local_dump_path}.gz"
         end
 
         def wpcli_search_replace(local, remote, config_key)

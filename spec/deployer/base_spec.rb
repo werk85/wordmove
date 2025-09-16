@@ -61,6 +61,20 @@ describe Wordmove::Deployer::Base do
           described_class.deployer_for(options)
         end
       end
+
+      context "with --experimental-db" do
+        it "uses SystemAdapter instead of Photocopier::SSH" do
+          options[:environment] = "staging"
+          options[:"experimental-db"] = true
+          system_adapter = double(:system_adapter)
+
+          allow(system_adapter).to receive(:logger=)
+          allow(Wordmove::Deployer::SystemAdapter).to receive(:new)
+            .and_return(system_adapter)
+
+          described_class.deployer_for(options)
+        end
+      end
     end
 
     context "with unknown type of connection " do

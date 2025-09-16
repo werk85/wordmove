@@ -1,0 +1,46 @@
+# Git and version control
+.git
+.gitignore
+
+# CI/CD
+.github
+
+# IDE files
+.idea
+.vscode
+*.swp
+*.swo
+
+# Development and testing
+spec/
+coverage/
+bin/
+doc/
+
+# Documentation
+*.md
+CLAUDE.md
+CONTRIBUTING.md
+README.mdown
+CHANGELOG.md
+
+# Built packages (we rebuild these in container)
+pkg/
+
+# Deployment scripts
+deploy/
+
+# Docker files (not needed in container)
+docker/
+.dockerignore
+
+# Assets (not needed for CLI tool)
+assets/
+
+# Examples and fixtures (not needed in container)
+examples.txt
+
+# Temporary files
+*.tmp
+*.log
+.DS_Store
