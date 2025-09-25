@@ -4,11 +4,6 @@ require "tempfile"
 require "pry-byebug"
 require "priscilla"
 
-require "simplecov"
-SimpleCov.start do
-  add_filter "/spec/"
-end
-
 require "wordmove"
 
 Dir[File.expand_path("support/**/*.rb", __dir__)].sort.each { |f| require f }
