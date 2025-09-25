@@ -63,9 +63,10 @@ describe Wordmove::Deployer::Base do
       end
 
       context "with --experimental-db" do
-        it "uses SystemAdapter instead of Photocopier::SSH" do
+        it "uses SystemAdapter instead of Photocompier::SSH" do
           options[:environment] = "staging"
           options[:"experimental-db"] = true
+          options[:db] = true # Add a task to make the test valid
           system_adapter = double(:system_adapter)
 
           allow(system_adapter).to receive(:logger=)

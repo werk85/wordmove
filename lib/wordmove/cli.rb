@@ -64,9 +64,9 @@ module Wordmove
     end
     def list
       Wordmove::EnvironmentsList.print(options)
-    rescue Wordmove::MovefileNotFound => e
+    rescue Wordmove::MovefileNotFound
       exit 1
-    rescue Psych::SyntaxError => e
+    rescue Psych::SyntaxError
       exit 1
     end
 

@@ -16,4 +16,3 @@ describe Wordmove::Deployer::FTP do
     end
   end
 end
-
