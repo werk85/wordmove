@@ -1,10 +1,21 @@
 module Wordmove
   module Deployer
+    class FTPAdapter < Photocopier::FTP
+      protected
+
+      def run(command)
+        logger.info command if logger.present?
+        return if system(command.to_s)
+
+        raise ShellCommandError, "Error executing command: #{command}"
+      end
+    end
+
     class FTP < Base
       def initialize(environment, options)
         super(environment, options)
         ftp_options = remote_options[:ftp]
-        @copier = Photocopier::FTP.new(ftp_options).tap { |c| c.logger = logger }
+        @copier = FTPAdapter.new(ftp_options).tap { |c| c.logger = logger }
       end
 
       def push_db
