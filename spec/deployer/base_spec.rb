@@ -165,4 +165,61 @@ describe Wordmove::Deployer::Base do
       expect(command).to eq("gzip -d -f \"dummy file.sql\"")
     end
   end
+
+  context "#selected_slugs" do
+    def deployer_with(extra)
+      described_class.new(:dummy_env, { config: movefile_path_for("multi_environments") }.merge(extra))
+    end
+
+    it "splits a comma list and trims whitespace" do
+      expect(deployer_with(plugins: "a, b ,c").send(:selected_slugs, "plugins")).to eq(%w[a b c])
+    end
+
+    it "returns [] for an empty string (bare flag = all)" do
+      expect(deployer_with(plugins: "").send(:selected_slugs, "plugins")).to eq([])
+    end
+
+    it "returns [] for a boolean true (uploads/languages stay unscoped)" do
+      expect(deployer_with(uploads: true).send(:selected_slugs, "uploads")).to eq([])
+    end
+
+    it "returns [] when the option is absent" do
+      expect(deployer_with({}).send(:selected_slugs, "plugins")).to eq([])
+    end
+  end
+
+  context "#each_selected_slug" do
+    let(:deployer) do
+      described_class.new(:dummy_env, config: movefile_path_for("multi_environments"))
+    end
+
+    it "yields nil once when no slugs are selected" do
+      allow(deployer).to receive(:selected_slugs).and_return([])
+      expect { |b| deployer.send(:each_selected_slug, "plugins", :push, &b) }
+        .to yield_with_args(nil)
+    end
+
+    it "yields each slug when scoped and the local dir exists (push)" do
+      allow(deployer).to receive(:selected_slugs).and_return(%w[a b])
+      allow(deployer).to receive(:assert_local_slug_dir!)
+      expect { |b| deployer.send(:each_selected_slug, "plugins", :push, &b) }
+        .to yield_successive_args("a", "b")
+    end
+
+    it "raises LocalPathNotFound on a scoped push to a missing local dir" do
+      allow(deployer).to receive(:selected_slugs).and_return(%w[typo])
+      # Base built directly has no merged :local options, so stub the dir lookup
+      # to a known-missing path. Do NOT change Base#initialize to work around this.
+      dir = instance_double(WordpressDirectory, path: "/no/such/plugins/typo")
+      allow(deployer).to receive(:local_plugins_dir).and_return(dir)
+      expect { deployer.send(:each_selected_slug, "plugins", :push) { |_| } }
+        .to raise_error(Wordmove::LocalPathNotFound, /typo/)
+    end
+
+    it "delegates the pull guard to assert_remote_slug_dir!" do
+      allow(deployer).to receive(:selected_slugs).and_return(%w[a])
+      expect(deployer).to receive(:assert_remote_slug_dir!).with("plugins", "a")
+      deployer.send(:each_selected_slug, "plugins", :pull) { |_| }
+    end
+  end
 end

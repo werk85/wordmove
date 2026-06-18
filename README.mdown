@@ -105,6 +105,31 @@ For example: `wordmove push -e staging -d` will push your local database to the 
 
 We warmly **recommend to read the wiki article**: [Multiple environments explained](https://github.com/welaika/wordmove/wiki/Multiple-environments-explained)
 
+### Scoping themes, plugins and mu-plugins
+
+The `--themes`/`-t`, `--plugins`/`-p` and `--mu_plugins`/`-m` flags accept an optional value
+so you can sync only named subdirectories:
+
+```bash
+wordmove push -p                       # all plugins (unchanged)
+wordmove push --plugins=mawinti        # only the "mawinti" plugin
+wordmove push --plugins=mawinti,foo    # only those plugins (comma-separated)
+wordmove push -p mawinti               # short form (a space, not "=")
+```
+
+The same applies to `--themes` and `--mu_plugins`. A scoped sync transfers **only** that
+subtree, so the mirror's deletion (see [Mirroring](#mirroring)) is confined to the named
+slug — sibling themes/plugins on the target are left untouched.
+
+Use `--plugins=foo` or the short `-p foo`; the `-p=foo` form is **not** supported.
+
+Scoped **pull** is supported over SSH only. Over FTP it is refused, because the FTP adapter
+cannot verify that the remote directory exists and would risk deleting your local copy.
+
+> **Note:** because `--themes`, `--plugins` and `--mu_plugins` now take an optional value,
+> the boolean negations `--no-themes` / `--no-plugins` / `--no-mu_plugins` are no longer
+> accepted. To skip a component, simply omit its flag.
+
 ## movefile.yml
 
 You can configure Wordmove creating a `movefile.yml`. That's a YAML file with local and remote host(s) infos:
@@ -294,6 +319,10 @@ from destination if not present in source.
 This means that if you have files/directories on your remotes which you must
 preserve, you **must exclude those in your movefile.yml**, or they will be
 deleted.
+
+If you only need to sync a single theme or plugin, you can scope the command (see
+[Scoping themes, plugins and mu-plugins](#scoping-themes-plugins-and-mu-plugins)); the mirror
+— including its deletions — is then confined to that one subdirectory.
 
 ### How the heck you are able to sync the DB via FTP?
 

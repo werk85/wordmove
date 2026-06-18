@@ -83,6 +83,42 @@ module Wordmove
         remote_options[:exclude] || []
       end
 
+      # Returns the list of slugs requested for a task, or [] meaning "all".
+      # Boolean tasks (uploads/languages) and the bare-flag empty string both yield [].
+      def selected_slugs(task)
+        value = options[task.to_sym]
+        return [] unless value.is_a?(String)
+
+        value.split(',').map(&:strip).reject(&:empty?)
+      end
+
+      # Yields nil once for "all"; otherwise guards then yields each slug.
+      def each_selected_slug(task, action)
+        slugs = selected_slugs(task)
+        return yield(nil) if slugs.empty?
+
+        slugs.each do |slug|
+          case action
+          when :push then assert_local_slug_dir!(task, slug)
+          when :pull then assert_remote_slug_dir!(task, slug)
+          end
+          yield slug
+        end
+      end
+
+      def assert_local_slug_dir!(task, slug)
+        path = send("local_#{task}_dir").path(slug)
+        return if File.directory?(path)
+
+        raise Wordmove::LocalPathNotFound,
+              "No local #{task} dir '#{slug}' at #{path} — aborting to avoid deleting the remote."
+      end
+
+      # SSH and FTP override this. Base refuses so a new adapter can't silently skip the guard.
+      def assert_remote_slug_dir!(_task, _slug)
+        raise Wordmove::ImplementInSubclassError
+      end
+
       def run(cmd)
         if cmd.nil? || cmd.empty?
           logger.error("Empty command passed to run method")

@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history so we can diff against the push's "before" commit
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -26,6 +28,39 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Compute image tags
+        id: meta
+        run: |
+          VERSION=$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+' lib/wordmove/version.rb | head -1)
+
+          # Only emit the version tags when this push actually changed version.rb,
+          # so re-runs and unrelated master pushes don't overwrite a published version.
+          BEFORE='${{ github.event.before }}'
+          if [ "${{ github.event_name }}" != "push" ] \
+             || [ -z "$BEFORE" ] \
+             || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] \
+             || ! git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+            changed=true
+          elif git diff --name-only "$BEFORE" '${{ github.sha }}' | grep -qx 'lib/wordmove/version.rb'; then
+            changed=true
+          else
+            changed=false
+          fi
+          echo "version=$VERSION ; version.rb changed=$changed"
+
+          {
+            echo "tags<<__EOF__"
+            echo "siriwan/wordmove:latest"
+            echo "siriwan/wordmove:${{ github.sha }}"
+            echo "siriwan/wordmove:php8.2"
+            echo "siriwan/wordmove:php8.2-${{ github.sha }}"
+            if [ "$changed" = "true" ]; then
+              echo "siriwan/wordmove:${VERSION}"
+              echo "siriwan/wordmove:php8.2-${VERSION}"
+            fi
+            echo "__EOF__"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
@@ -33,10 +68,6 @@ jobs:
           file: ./docker/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           platforms: linux/amd64,linux/arm64
-          tags: |
-            siriwan/wordmove:latest
-            siriwan/wordmove:${{ github.sha }}
-            siriwan/wordmove:php8.2
-            siriwan/wordmove:php8.2-${{ github.sha }}
+          tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=registry,ref=siriwan/wordmove:latest
           cache-to: type=inline

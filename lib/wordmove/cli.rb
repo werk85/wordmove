@@ -20,9 +20,9 @@ module Wordmove
     shared_options = {
       wordpress: { aliases: "-w", type: :boolean },
       uploads: { aliases: "-u", type: :boolean },
-      themes: { aliases: "-t", type: :boolean },
-      plugins: { aliases: "-p", type: :boolean },
-      mu_plugins: { aliases: "-m", type: :boolean },
+      themes: { aliases: "-t", type: :string, lazy_default: "" },
+      plugins: { aliases: "-p", type: :string, lazy_default: "" },
+      mu_plugins: { aliases: "-m", type: :string, lazy_default: "" },
       languages: { aliases: "-l", type: :boolean },
       db: { aliases: "-d", type: :boolean },
       verbose: { aliases: "-v", type: :boolean },

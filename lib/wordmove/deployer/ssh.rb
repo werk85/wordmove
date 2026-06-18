@@ -1,4 +1,5 @@
 require 'pathname'
+require 'shellwords'
 require_relative 'ssh/system_adapter'
 
 module Wordmove
@@ -102,24 +103,27 @@ module Wordmove
       %w[uploads themes plugins mu_plugins languages].each do |task|
         define_method "push_#{task}" do
           logger.task "Pushing #{task.titleize}"
-          local_path = local_options[:wordpress_path]
-          remote_path = remote_options[:wordpress_path]
-
-          remote_put_directory(local_path, remote_path,
-                               push_exclude_paths(task), push_inlcude_paths(task))
+          each_selected_slug(task, :push) do |slug|
+            remote_put_directory(local_options[:wordpress_path],
+                                 remote_options[:wordpress_path],
+                                 push_exclude_paths(task, slug),
+                                 push_inlcude_paths(task, slug))
+          end
         end
 
         define_method "pull_#{task}" do
           logger.task "Pulling #{task.titleize}"
-          local_path = local_options[:wordpress_path]
-          remote_path = remote_options[:wordpress_path]
-          remote_get_directory(remote_path, local_path,
-                               pull_exclude_paths(task), pull_include_paths(task))
+          each_selected_slug(task, :pull) do |slug|
+            remote_get_directory(remote_options[:wordpress_path],
+                                 local_options[:wordpress_path],
+                                 pull_exclude_paths(task, slug),
+                                 pull_include_paths(task, slug))
+          end
         end
       end
 
-      def push_inlcude_paths(task)
-        Pathname.new(send(:"local_#{task}_dir").relative_path)
+      def push_inlcude_paths(task, slug = nil)
+        Pathname.new(send(:"local_#{task}_dir").relative_path(*[slug].compact))
                 .ascend
                 .each_with_object([]) do |directory, array|
                   path = directory.to_path
@@ -129,8 +133,8 @@ module Wordmove
                 end
       end
 
-      def push_exclude_paths(task)
-        Pathname.new(send(:"local_#{task}_dir").relative_path)
+      def push_exclude_paths(task, slug = nil)
+        Pathname.new(send(:"local_#{task}_dir").relative_path(*[slug].compact))
                 .dirname
                 .ascend
                 .each_with_object([]) do |directory, array|
@@ -144,8 +148,8 @@ module Wordmove
                 .concat(['/*'])
       end
 
-      def pull_include_paths(task)
-        Pathname.new(send(:"remote_#{task}_dir").relative_path)
+      def pull_include_paths(task, slug = nil)
+        Pathname.new(send(:"remote_#{task}_dir").relative_path(*[slug].compact))
                 .ascend
                 .each_with_object([]) do |directory, array|
                   path = directory.to_path
@@ -155,8 +159,8 @@ module Wordmove
                 end
       end
 
-      def pull_exclude_paths(task)
-        Pathname.new(send(:"remote_#{task}_dir").relative_path)
+      def pull_exclude_paths(task, slug = nil)
+        Pathname.new(send(:"remote_#{task}_dir").relative_path(*[slug].compact))
                 .dirname
                 .ascend
                 .each_with_object([]) do |directory, array|
@@ -168,6 +172,15 @@ module Wordmove
                 end
                 .concat(paths_to_exclude)
                 .concat(['/*'])
+      end
+
+      def assert_remote_slug_dir!(task, slug)
+        path = send("remote_#{task}_dir").path(slug)
+        _stdout, _stderr, exit_code = @copier.exec!("test -d #{Shellwords.escape(path)}")
+        return if exit_code.zero?
+
+        raise Wordmove::RemotePathNotFound,
+              "No remote #{task} dir '#{slug}' at #{path} — aborting to avoid deleting local data."
       end
     end
   end

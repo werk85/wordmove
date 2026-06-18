@@ -7,4 +7,6 @@ module Wordmove
   class UnmetPeerDependencyError < StandardError; end
   class RemoteHookException < StandardError; end
   class LocalHookException < StandardError; end
+  class LocalPathNotFound < StandardError; end
+  class RemotePathNotFound < StandardError; end
 end

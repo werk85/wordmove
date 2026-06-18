@@ -72,17 +72,28 @@ module Wordmove
       %w[uploads themes plugins mu_plugins languages].each do |task|
         define_method "push_#{task}" do
           logger.task "Pushing #{task.titleize}"
-          local_path = send("local_#{task}_dir").path
-          remote_path = send("remote_#{task}_dir").path
-          remote_put_directory(local_path, remote_path, paths_to_exclude)
+          each_selected_slug(task, :push) do |slug|
+            local_path = send("local_#{task}_dir").path(*[slug].compact)
+            remote_path = send("remote_#{task}_dir").path(*[slug].compact)
+            remote_put_directory(local_path, remote_path, paths_to_exclude)
+          end
         end
 
         define_method "pull_#{task}" do
           logger.task "Pulling #{task.titleize}"
-          local_path = send("local_#{task}_dir").path
-          remote_path = send("remote_#{task}_dir").path
-          remote_get_directory(remote_path, local_path, paths_to_exclude)
+          each_selected_slug(task, :pull) do |slug|
+            local_path = send("local_#{task}_dir").path(*[slug].compact)
+            remote_path = send("remote_#{task}_dir").path(*[slug].compact)
+            remote_get_directory(remote_path, local_path, paths_to_exclude)
+          end
         end
+      end
+
+      def assert_remote_slug_dir!(task, slug)
+        raise Wordmove::RemotePathNotFound,
+              "Scoped pull over FTP is not supported (slug '#{slug}' for #{task}): " \
+              "Photocopier's FTP adapter can't verify the remote dir, and lftp would " \
+              "mkdir it and wipe the local copy. Use SSH, or pull all and prune locally."
       end
 
       %w[get get_directory put_directory delete].each do |command|

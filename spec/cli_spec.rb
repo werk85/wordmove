@@ -143,6 +143,50 @@ describe Wordmove::CLI do
     end
   end
 
+  context "scoped plugin/theme flags" do
+    let(:movefile) { movefile_path_for("multi_environments") }
+
+    # Capture the options hash the deployer would receive, without running a real transfer.
+    def captured_options_for(argv)
+      captured = nil
+      # Plain double (not instance_double): push_<task> lives on the SSH/FTP
+      # subclasses, not on Base, so a verified double would reject push_plugins.
+      null_deployer = double("deployer").as_null_object
+      allow(Wordmove::Deployer::Base).to receive(:deployer_for) do |opts|
+        captured = opts
+        null_deployer
+      end
+      allow(Wordmove::Hook).to receive(:run)
+      silence_stream($stdout) { Wordmove::CLI.start(argv) }
+      captured
+    end
+
+    it "binds bare --plugins to an empty string (means: all)" do
+      opts = captured_options_for(["push", "--plugins", "-e", "staging", "-c", movefile])
+      expect(opts[:plugins]).to eq("")
+    end
+
+    it "binds --plugins=foo to the slug" do
+      opts = captured_options_for(["push", "--plugins=foo", "-e", "staging", "-c", movefile])
+      expect(opts[:plugins]).to eq("foo")
+    end
+
+    it "binds a comma list" do
+      opts = captured_options_for(["push", "--plugins=foo,bar", "-e", "staging", "-c", movefile])
+      expect(opts[:plugins]).to eq("foo,bar")
+    end
+
+    it "binds the short space form -p foo" do
+      opts = captured_options_for(["push", "-p", "foo", "-e", "staging", "-c", movefile])
+      expect(opts[:plugins]).to eq("foo")
+    end
+
+    it "leaves plugins absent when the flag is omitted" do
+      opts = captured_options_for(["push", "-t", "-e", "staging", "-c", movefile])
+      expect(opts[:plugins]).to be_nil
+    end
+  end
+
   context "--experimental-db" do
     let(:options) { { "experimental-db" => true, db: true, config: movefile_path_for('Movefile') } }
 
