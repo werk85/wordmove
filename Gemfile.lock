@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    wordmove (5.3.0)
+    wordmove (5.3.1)
       activesupport (~> 6.1)
       colorize (~> 0.8.1)
       dotenv (~> 2.7.5)

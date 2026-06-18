@@ -52,7 +52,7 @@ How to use it:
   `rake release` (via `bundler/gem_tasks`) tags git `v<version>` and publishes the gem to
   RubyGems — independent of the Docker image.
 
-### Docker base image bump Ruby 3.1 → 3.3 (2026-06-18) — hotfix
+### Docker base image bump Ruby 3.1 → 3.3 (2026-06-18) — hotfix, shipped as v5.3.1
 - **Symptom:** `siriwan/wordmove:latest` crashed at startup —
   `i18n-1.15.0/lib/i18n.rb: undefined method '[]' for Fiber:Class (NoMethodError)`
   before any wordmove logic ran.

@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [5.3.1] - 2026-06-18
+
+### Fixed
+
+- Docker image: bump base from `ruby:3.1-bullseye` to `ruby:3.3-bullseye`. A floating build had
+  resolved `i18n 1.15.0`, which requires Ruby >= 3.2 (`Fiber[]`) and crashed wordmove at startup
+  on the Ruby 3.1 image. `Gemfile.lock` is now committed (linux + darwin platforms) and the image
+  builds with `BUNDLE_FROZEN=true`, so dependency resolution is reproducible. (5.3.0 had no
+  RubyGems release; the broken `siriwan/wordmove:5.3.0` Docker tag is superseded by 5.3.1.)
+
 ## [5.3.0] - 2026-06-18
 
 ### Added
