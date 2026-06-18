@@ -52,6 +52,25 @@ How to use it:
   `rake release` (via `bundler/gem_tasks`) tags git `v<version>` and publishes the gem to
   RubyGems — independent of the Docker image.
 
+### Docker base image bump Ruby 3.1 → 3.3 (2026-06-18) — hotfix
+- **Symptom:** `siriwan/wordmove:latest` crashed at startup —
+  `i18n-1.15.0/lib/i18n.rb: undefined method '[]' for Fiber:Class (NoMethodError)`
+  before any wordmove logic ran.
+- **Root cause:** `Gemfile.lock` is gitignored, so each image build floats to the latest
+  gems. `activesupport ~> 6.1` allows i18n up to 1.15.x; i18n **1.15.0 requires Ruby ≥ 3.2**
+  (uses `Fiber[]`), but the base was `ruby:3.1-bullseye`. The previous/working image had
+  resolved i18n 1.14.7 (3.1-compatible); the `--no-cache` rebuild swept in 1.15.0.
+  Verified: i18n 1.15.0 crashes on 3.1, loads OK on 3.2/3.3; 1.14.7 loads on 3.1.
+- **Fix:** `docker/Dockerfile` `FROM ruby:3.1-bullseye` → `ruby:3.3-bullseye` (Debian 11
+  unchanged, so the PHP sury repo line still applies). Rebuilt + verified `wordmove help push`
+  runs on 3.3.
+- **Reproducibility (done):** `Gemfile.lock` is now committed (removed from `.gitignore`),
+  generated on Ruby 3.3 with platforms `x86_64-linux aarch64-linux arm64-darwin x86_64-darwin`
+  so the multi-arch image build and local macOS dev both resolve from it without mutation.
+  The Dockerfile build runs `BUNDLE_FROZEN=true bundle install`, so a `Gemfile` change without
+  a matching lock update fails the build loudly instead of silently re-resolving. Update deps
+  deliberately via `bundle update` (re-resolves all locked platforms), then commit the lock.
+
 ---
 
 ## Refinement backlog (open, non-blocking)

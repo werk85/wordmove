@@ -1,4 +1,4 @@
-FROM ruby:3.1-bullseye
+FROM ruby:3.3-bullseye
 
 LABEL maintainer="martin@werk85.de"
 
@@ -45,8 +45,10 @@ COPY wordmove.gemspec Gemfile ./
 # Copy the whole project
 COPY . .
 
-# Install dependencies and build wordmove gem
-RUN bundle install \
+# Install dependencies and build wordmove gem.
+# BUNDLE_FROZEN: fail the build if Gemfile.lock is out of sync with the Gemfile,
+# instead of silently re-resolving (which is how an incompatible dep slipped in).
+RUN BUNDLE_FROZEN=true bundle install \
     && rake build \
     && gem install pkg/wordmove-*.gem
 
