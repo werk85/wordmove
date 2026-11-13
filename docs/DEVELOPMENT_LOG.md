@@ -19,7 +19,7 @@ How to use it:
 
 ## Delivered features
 
-### photocopier vendored, net-ssh 6.1 → 7.3 (2026-11-13), issue #3
+### photocopier vendored, net-ssh 6.1 → 7.3 — v5.4.0 (2026-11-13), issue #3
 - **What:** photocopier 1.4.1 (337 lines, MIT) is copied to `lib/wordmove/photocopier/`
   with its LICENSE and an origin header per file. The module name `Photocopier` is kept,
   so call sites (`Deployer::SSH`, `Deployer::FTP`, `Hook`) and spec stubs are unchanged.
@@ -31,6 +31,10 @@ How to use it:
   `net-ssh-gateway ~> 2.0`, `net-ftp ~> 0.1.3`, plus `ed25519 ~> 1.3` and
   `bcrypt_pbkdf ~> 1.1`. The Dockerfile's `gem install ed25519 bcrypt_pbkdf net-ssh` is
   removed: those system gems were never loadable under `bundle exec`.
+- **Verified in production use:** ibsa's workaround (patched photocopier gemspec + net-ssh 7
+  system gems + PHP 8.3 via sury) removed, image built `FROM` the new one; `pull -d` and
+  `connect` against the production server (port 222) work. Note that the workaround breaks
+  the build on 5.4.0+ (no photocopier gemspec, no `apt-key` in Debian 13).
 - **Verified** against a local OpenSSH 10.3 container, through `Photocopier::SSH#exec!` (the
   DB-transfer path), forcing the `ssh-ed25519` host key:
   `siriwan/wordmove:latest` (net-ssh 6.1.0) → `could not settle on host_key algorithm`
@@ -38,7 +42,7 @@ How to use it:
   (`diffie-hellman-group-exchange-sha256`) couldn't be reproduced, because OpenSSH 10.3 no
   longer offers it.
 
-### Docker base Debian 11 → 13, PHP 8.2 → 8.4, PHP tag from Dockerfile (2026-11-13), issue #3 (partial)
+### Docker base Debian 11 → 13, PHP 8.2 → 8.4, PHP tag from Dockerfile — v5.4.0 (2026-11-13), issue #3
 - **Symptom:** `docker build -f docker/Dockerfile .` failed at `apt-get install` with
   404s from `deb.debian.org/debian-security` (curl, gnupg, ca-certificates). Bullseye LTS
   ended 2026-08-31; its security pool is gone while the image still references it.
@@ -53,7 +57,7 @@ How to use it:
   `wordmove doctor` accepts it (it was already used by `mysql_import_command`).
 - **net-ssh:** see "photocopier vendored" above.
 
-### `wordmove connect` — unreleased (2026-11-13), issue #2
+### `wordmove connect` — v5.4.0 (2026-11-13), issue #2
 - **What:** `wordmove connect -e <env> [-c <movefile>]` replaces the wordmove process
   (`Kernel.exec`) with an interactive `lftp` (if `ftp` is configured) or `ssh` (if `ssh` is
   configured) session; neither → `NoAdapterFound`, exit 1. FTP wins when both exist, matching
