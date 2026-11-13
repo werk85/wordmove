@@ -25,6 +25,12 @@ If you want to test-run your local wordmove, build a local docker image and use 
 
 `docker build -t local/wordmove:latest -f docker/Dockerfile . --no-cache`
 
+The image is tagged with the wordmove and PHP versions it contains, e.g.
+`siriwan/wordmove:latest`, `siriwan/wordmove:php8.4` and `siriwan/wordmove:php8.4-5.3.1`.
+To mirror that locally:
+
+`docker tag local/wordmove:latest local/wordmove:php8.4`
+
 #### Use local docker image
 
 ```yaml
@@ -72,6 +78,7 @@ Wordmove also expect that the remote server will have the following commands: `g
 > wordmove help
 Commands:
   wordmove --version, -v    # Print the version
+  wordmove connect          # Opens an interactive ssh or lftp session to a remote environment
   wordmove doctor           # Do some local configuration and environment checks
   wordmove help [TASK]      # Describe available tasks or one specific task
   wordmove init             # Generates a brand new movefile.yml
@@ -104,6 +111,28 @@ Use `-e` with `pull` or `push` to run the command on the specified environment.
 For example: `wordmove push -e staging -d` will push your local database to the staging environment.
 
 We warmly **recommend to read the wiki article**: [Multiple environments explained](https://github.com/welaika/wordmove/wiki/Multiple-environments-explained)
+
+### Connecting to a remote environment
+
+`wordmove connect` opens an interactive session on the environment given with `-e`
+(use `-c` to point to a specific movefile):
+
+```bash
+wordmove connect -e staging
+wordmove connect -e production
+```
+
+- If the environment has an `ftp` section, `lftp` is started (honouring `scheme`, `port` and
+  `passive`). The configured password is handed over via the `LFTP_PASSWORD` environment
+  variable, so it never shows up in the process list.
+- Otherwise, if it has an `ssh` section, `ssh` is started (honouring `port`, `key` and
+  `gateway`, the latter via `ssh -J`). `ssh.password` is **not** used: ssh prompts for whatever
+  the server asks for, which also works for accounts requiring a key *and* a password.
+  Gateway passwords can't be passed either; enter them at the prompt.
+- If neither is configured, wordmove exits with an error.
+
+The session starts inside the environment's `wordpress_path` when one is set. `ssh` or `lftp`
+must be installed locally.
 
 ### Scoping themes, plugins and mu-plugins
 
@@ -295,6 +324,32 @@ We have a docker image bringing the latest Wordmove's version with autobuild on 
 - You need `rsync` on your machine; as far as we know it's already installed on OS X and Linux.
 - To use your SSH public key for authentication, just delete the `production.ssh.password` field in your `movefile.yml`. Easy peasy.
 - writing the password inside `movefile.yml` was and is somewhat supported, but **we discourage this practice** in favor of password-less authentication with pub key. Read [here](https://github.com/welaika/wordmove/wiki/%5Bdeprecated%5D-SSH-password-inside-Movefile) for old informations.
+
+#### MySQL client and TLS certificates (Docker image)
+
+The Docker image (Debian 13) ships the MariaDB 11.8 client as `mysql`/`mysqldump`. Since
+MariaDB 11.4 the client **verifies the server's TLS certificate by default**. Database
+servers with a self-signed certificate, such as a local DB container, then fail with an
+error like `TLS/SSL error: self-signed certificate`.
+
+Disable the verification for the affected database with `mysql_options` (used by `mysql`
+when importing) and `mysqldump_options` (used by `mysqldump` when exporting):
+
+```yaml
+local:
+  database:
+    name: database_name
+    user: user
+    password: password
+    host: db
+    mysql_options: '--skip-ssl-verify-server-cert'
+    mysqldump_options: '--skip-ssl-verify-server-cert'
+```
+
+The options of the `local` database apply to the client inside the container. The options
+of a remote environment are passed to the client *on the remote server* (SSH only), so
+only set them there if that server also runs a MariaDB client 11.4 or newer.
+Only skip the verification for servers you trust, e.g. a database on your local network.
 
 ### FTP and SFTP
 

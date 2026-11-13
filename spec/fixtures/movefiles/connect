@@ -1,0 +1,64 @@
+global:
+  sql_adapter: "default"
+
+local:
+  vhost: "http://localhost:8080"
+  wordpress_path: "/home/welaika/sites/your_site"
+
+  database:
+    name: "database_name"
+    user: "user"
+    password: "password"
+    host: "host"
+
+ssh_plain:
+  vhost: "http://ssh.example.com"
+  wordpress_path: "/var/www/my site"
+  ssh:
+    host: "ssh.example.com"
+    user: "deploy"
+    password: "ssh-secret"
+
+ssh_full:
+  vhost: "http://ssh.example.com"
+  ssh:
+    host: "ssh.example.com"
+    port: 2222
+    key: "~/.ssh/id_deploy"
+    gateway:
+      host: "bastion.example.com"
+      user: "jump"
+      password: "gw-secret"
+
+ssh_no_user:
+  vhost: "http://ssh.example.com"
+  ssh:
+    host: "configured-alias"
+
+ftp_plain:
+  vhost: "http://ftp.example.com"
+  wordpress_path: "/htdocs"
+  ftp:
+    user: "ftpuser"
+    password: "ftp-secret"
+    host: "ftp.example.com"
+    passive: true
+
+ftp_sftp:
+  vhost: "http://ftp.example.com"
+  ftp:
+    user: "ftpuser"
+    host: "sftp.example.com"
+    scheme: "sftp"
+
+both:
+  vhost: "http://both.example.com"
+  ftp:
+    user: "ftpuser"
+    password: "ftp-secret"
+    host: "ftp.example.com"
+  ssh:
+    host: "ssh.example.com"
+
+no_protocol:
+  vhost: "http://none.example.com"

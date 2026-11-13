@@ -27,6 +27,8 @@ mapping:
         required: true
       mysqldump_options:
         type: str
+      mysql_options:
+        type: str
       port:
         type: int
       charset:

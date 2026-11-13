@@ -16,6 +16,7 @@ require 'yaml'
 require 'photocopier'
 
 require 'wordmove/cli'
+require 'wordmove/connector'
 require 'wordmove/doctor'
 require 'wordmove/doctor/movefile'
 require 'wordmove/doctor/mysql'
