@@ -19,6 +19,25 @@ How to use it:
 
 ## Delivered features
 
+### photocopier vendored, net-ssh 6.1 → 7.3 (2026-11-13), issue #3
+- **What:** photocopier 1.4.1 (337 lines, MIT) is copied to `lib/wordmove/photocopier/`
+  with its LICENSE and an origin header per file. The module name `Photocopier` is kept,
+  so call sites (`Deployer::SSH`, `Deployer::FTP`, `Hook`) and spec stubs are unchanged.
+- **Why:** photocopier pins `net-ssh ~> 6.1` (plus net-scp/net-sftp 3 with `net-ssh < 7`),
+  and Bundler can't override a dependency's constraint. Vendoring moves the net-* constraints
+  into wordmove's gemspec, so `gem install wordmove` users get net-ssh 7 too, not just the
+  Docker image (a fork or submodule would only have fixed Bundler-based installs).
+- **Dependencies:** `net-ssh ~> 7.3` (7.3.10), `net-scp ~> 4.0`, `net-sftp ~> 4.0`,
+  `net-ssh-gateway ~> 2.0`, `net-ftp ~> 0.1.3`, plus `ed25519 ~> 1.3` and
+  `bcrypt_pbkdf ~> 1.1`. The Dockerfile's `gem install ed25519 bcrypt_pbkdf net-ssh` is
+  removed: those system gems were never loadable under `bundle exec`.
+- **Verified** against a local OpenSSH 10.3 container, through `Photocopier::SSH#exec!` (the
+  DB-transfer path), forcing the `ssh-ed25519` host key:
+  `siriwan/wordmove:latest` (net-ssh 6.1.0) → `could not settle on host_key algorithm`
+  (client offers no Ed25519); new image (net-ssh 7.3.10) → OK. The issue's exact KEX
+  (`diffie-hellman-group-exchange-sha256`) couldn't be reproduced, because OpenSSH 10.3 no
+  longer offers it.
+
 ### Docker base Debian 11 → 13, PHP 8.2 → 8.4, PHP tag from Dockerfile (2026-11-13), issue #3 (partial)
 - **Symptom:** `docker build -f docker/Dockerfile .` failed at `apt-get install` with
   404s from `deb.debian.org/debian-security` (curl, gnupg, ca-certificates). Bullseye LTS
@@ -32,8 +51,7 @@ How to use it:
   TLS certificate by default. README documents `--skip-ssl-verify-server-cert` via
   `mysql_options`/`mysqldump_options`; `mysql_options` added to both Movefile schemas so
   `wordmove doctor` accepts it (it was already used by `mysql_import_command`).
-- **Still open from #3:** the image still loads `net-ssh 6.1.0` (photocopier pins `~> 6.1`),
-  so SSH DB transfers may keep failing with `Ed25519::VerifyError`.
+- **net-ssh:** see "photocopier vendored" above.
 
 ### `wordmove connect` — unreleased (2026-11-13), issue #2
 - **What:** `wordmove connect -e <env> [-c <movefile>]` replaces the wordmove process
@@ -103,9 +121,8 @@ How to use it:
 
 ## Refinement backlog (open, non-blocking)
 
-- **[high] net-ssh 6.1 in the Docker image (issue #3).** Needs photocopier's `net-ssh ~> 6.1`
-  loosened (fork or patched gemspec) and `Gemfile.lock` regenerated to net-ssh 7.3 /
-  net-scp 4 / net-sftp 4. Verify with `bundle exec ruby -e 'require "net/ssh"; puts Gem.loaded_specs["net-ssh"].version'`.
+- **[medium] Scoped FTP pull can now be fixed in-house.** With photocopier vendored, a
+  remote-dir existence check can be added to `Photocopier::FTP` directly (see limitation below).
 - **[medium] Scoped pull over FTP is unsupported.** It currently raises `RemotePathNotFound`
   on purpose. Supporting it safely needs a spike on an lftp-based remote-dir-existence probe
   (Photocopier's FTP adapter exposes no directory-check API). See limitation below.
@@ -142,6 +159,9 @@ How to use it:
   on argv (would be visible in `ps`). Without a password, lftp prompts.
 - **`connect` flushes `$stdout` before `exec`;** otherwise buffered log lines are lost when
   stdout isn't a TTY.
+- **photocopier is vendored, not forked.** It's small, essentially unmaintained upstream, and
+  vendoring is the only option that also fixes RubyGems installs. Local changes to
+  `lib/wordmove/photocopier/` are expected; keep the MIT notice.
 - **Scoping is the deletion-safety mechanism.** `--delete` is hardcoded in both Photocopier
   adapters and intentionally left untouched; confining the transferred subtree confines the
   delete. Verified against rsync's include-before-exclude ordering (first-match-wins).

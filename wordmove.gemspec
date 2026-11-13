@@ -30,13 +30,19 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_runtime_dependency "activesupport", '~> 6.1'
+  spec.add_runtime_dependency "bcrypt_pbkdf", "~> 1.1"
   spec.add_runtime_dependency "colorize", "~> 0.8.1"
   spec.add_runtime_dependency "dotenv", "~> 2.7.5"
+  spec.add_runtime_dependency "ed25519", "~> 1.3"
   spec.add_runtime_dependency "fiddle", "~> 1.1.1"
   spec.add_runtime_dependency "irb", "~> 1.11.2"
   spec.add_runtime_dependency "kwalify", "~> 0"
+  spec.add_runtime_dependency "net-ftp", "~> 0.1.3"
+  spec.add_runtime_dependency "net-scp", "~> 4.0"
+  spec.add_runtime_dependency "net-sftp", "~> 4.0"
+  spec.add_runtime_dependency "net-ssh", "~> 7.3"
+  spec.add_runtime_dependency "net-ssh-gateway", "~> 2.0"
   spec.add_runtime_dependency "ostruct", "~> 0.6.0"
-  spec.add_runtime_dependency "photocopier", "~> 1.4", ">= 1.4.0"
   spec.add_runtime_dependency "reline", "~> 0.4.2"
   spec.add_runtime_dependency "thor", "~> 1.3.0"
 
