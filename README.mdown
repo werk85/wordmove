@@ -26,7 +26,7 @@ If you want to test-run your local wordmove, build a local docker image and use 
 `docker build -t local/wordmove:latest -f docker/Dockerfile . --no-cache`
 
 The image is tagged with the wordmove and PHP versions it contains, e.g.
-`siriwan/wordmove:latest`, `siriwan/wordmove:php8.4` and `siriwan/wordmove:php8.4-5.3.1`.
+`siriwan/wordmove:latest`, `siriwan/wordmove:php8.4` and `siriwan/wordmove:php8.4-5.4.0`.
 To mirror that locally:
 
 `docker tag local/wordmove:latest local/wordmove:php8.4`
