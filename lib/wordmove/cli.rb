@@ -70,6 +70,16 @@ module Wordmove
       exit 1
     end
 
+    desc "connect", "Opens an interactive ssh or lftp session to a remote environment"
+    method_option :environment, aliases: "-e"
+    method_option :config, aliases: "-c"
+    def connect
+      Wordmove::Connector.new(options.deep_symbolize_keys).connect!
+    rescue MovefileNotFound, UndefinedEnvironment, NoAdapterFound, MissingExecutable, Psych::SyntaxError => e
+      logger.error(e.message)
+      exit 1
+    end
+
     desc "pull", "Pulls WP data from remote host to the local machine"
     shared_options.each do |option, args|
       method_option option, args

@@ -1,24 +1,22 @@
-FROM ruby:3.3-bullseye
+FROM ruby:3.3-trixie
 
 LABEL maintainer="martin@werk85.de"
 
 ENV WORDMOVE_WORKDIR="/html"
 WORKDIR /html
 
-# Install system dependencies
+# Install system dependencies (Debian 13 ships PHP 8.4 in main)
 RUN apt-get update && \
-    apt-get install -y curl apt-transport-https ca-certificates gnupg2 && \
-    curl -sSL https://packages.sury.org/php/apt.gpg | apt-key add - && \
-    echo "deb https://packages.sury.org/php/ bullseye main" | tee /etc/apt/sources.list.d/php.list && \
-    apt-get update && \
     apt-get install -y \
+    curl \
+    ca-certificates \
     openssh-client \
     rsync \
     default-mysql-client \
-    php8.2-cli \
-    php8.2-mysql \
-    php8.2-curl \
-    php8.2-xml \
+    php8.4-cli \
+    php8.4-mysql \
+    php8.4-curl \
+    php8.4-xml \
     lftp \
     build-essential \
     git \

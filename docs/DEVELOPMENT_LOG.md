@@ -19,6 +19,34 @@ How to use it:
 
 ## Delivered features
 
+### Docker base Debian 11 → 13, PHP 8.2 → 8.4, PHP tag from Dockerfile (2026-11-13), issue #3 (partial)
+- **Symptom:** `docker build -f docker/Dockerfile .` failed at `apt-get install` with
+  404s from `deb.debian.org/debian-security` (curl, gnupg, ca-certificates). Bullseye LTS
+  ended 2026-08-31; its security pool is gone while the image still references it.
+- **Fix:** `FROM ruby:3.3-trixie`. Debian 13 ships PHP 8.4 in main, so the sury repo and the
+  deprecated `apt-key` step are dropped; packages are `php8.4-*`.
+- **Tags:** `.github/workflows/docker.yml` derives the PHP tag from the first
+  `php<major>.<minor>-cli` package in `docker/Dockerfile` (fails the job if none is found),
+  publishing `:php8.4`, `:php8.4-<sha>` and, on a version bump, `:php8.4-<version>`.
+- **MySQL client:** `default-mysql-client` is now MariaDB 11.8, which verifies the server's
+  TLS certificate by default. README documents `--skip-ssl-verify-server-cert` via
+  `mysql_options`/`mysqldump_options`; `mysql_options` added to both Movefile schemas so
+  `wordmove doctor` accepts it (it was already used by `mysql_import_command`).
+- **Still open from #3:** the image still loads `net-ssh 6.1.0` (photocopier pins `~> 6.1`),
+  so SSH DB transfers may keep failing with `Ed25519::VerifyError`.
+
+### `wordmove connect` — unreleased (2026-11-13), issue #2
+- **What:** `wordmove connect -e <env> [-c <movefile>]` replaces the wordmove process
+  (`Kernel.exec`) with an interactive `lftp` (if `ftp` is configured) or `ssh` (if `ssh` is
+  configured) session; neither → `NoAdapterFound`, exit 1. FTP wins when both exist, matching
+  `Deployer::Base.deployer_for`. Starts in `wordpress_path` when set
+  (`ssh -t … 'cd <path> && exec $SHELL -l'` / lftp `-e 'cd <path>'`).
+- **SSH:** honours `port`, `key`, `gateway` (`-J user@host[:port]`). Missing binary →
+  `MissingExecutable`, exit 1.
+- **FTP:** honours `scheme`, `port` (inferred 22/21 like Photocopier), `passive`.
+- **Key files:** `lib/wordmove/connector.rb`, `lib/wordmove/cli.rb`,
+  `spec/connector_spec.rb`, `spec/fixtures/movefiles/connect`. Suite 159 examples, RuboCop clean.
+
 ### Per-slug scoping for `push`/`pull` — v5.3.0 (2026-06-18)
 - **What:** `--themes`/`-t`, `--plugins`/`-p`, `--mu_plugins`/`-m` accept an optional value
   (`--plugins=mawinti`, `--plugins=a,b`, `-p mawinti`). Bare flag still means "all".
@@ -75,6 +103,9 @@ How to use it:
 
 ## Refinement backlog (open, non-blocking)
 
+- **[high] net-ssh 6.1 in the Docker image (issue #3).** Needs photocopier's `net-ssh ~> 6.1`
+  loosened (fork or patched gemspec) and `Gemfile.lock` regenerated to net-ssh 7.3 /
+  net-scp 4 / net-sftp 4. Verify with `bundle exec ruby -e 'require "net/ssh"; puts Gem.loaded_specs["net-ssh"].version'`.
 - **[medium] Scoped pull over FTP is unsupported.** It currently raises `RemotePathNotFound`
   on purpose. Supporting it safely needs a spike on an lftp-based remote-dir-existence probe
   (Photocopier's FTP adapter exposes no directory-check API). See limitation below.
@@ -103,6 +134,14 @@ How to use it:
 - **Scoped FTP pull refused (data-safety).** lftp's `find -d 1 <remote> || mkdir -p <remote>`
   would create an empty remote dir on a mistyped slug and then mirror emptiness *down*,
   wiping the local copy. With no remote-existence check available, refusing is the safe choice.
+- **`connect` ignores `ssh.password` (no sshpass).** Some accounts demand a key *and* a
+  password, and the Movefile password isn't necessarily the login password; plain ssh
+  prompts for whatever the server wants (incl. 2FA). Possible later opt-in flag to use
+  `sshpass -e`. Gateway passwords can't be passed through `-J` → warning, user types it.
+- **`connect` passes the FTP password only via `LFTP_PASSWORD` + `--env-password`**, never
+  on argv (would be visible in `ps`). Without a password, lftp prompts.
+- **`connect` flushes `$stdout` before `exec`;** otherwise buffered log lines are lost when
+  stdout isn't a TTY.
 - **Scoping is the deletion-safety mechanism.** `--delete` is hardcoded in both Photocopier
   adapters and intentionally left untouched; confining the transferred subtree confines the
   delete. Verified against rsync's include-before-exclude ordering (first-match-wins).

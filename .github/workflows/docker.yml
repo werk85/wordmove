@@ -32,6 +32,11 @@ jobs:
         id: meta
         run: |
           VERSION=$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+' lib/wordmove/version.rb | head -1)
+          PHP=$(grep -oE 'php[0-9]+\.[0-9]+-cli' docker/Dockerfile | head -1 | sed 's/-cli$//')
+          if [ -z "$PHP" ]; then
+            echo "Could not determine the PHP version from docker/Dockerfile" >&2
+            exit 1
+          fi
 
           # Only emit the version tags when this push actually changed version.rb,
           # so re-runs and unrelated master pushes don't overwrite a published version.
@@ -46,17 +51,17 @@ jobs:
           else
             changed=false
           fi
-          echo "version=$VERSION ; version.rb changed=$changed"
+          echo "version=$VERSION ; php=$PHP ; version.rb changed=$changed"
 
           {
             echo "tags<<__EOF__"
             echo "siriwan/wordmove:latest"
             echo "siriwan/wordmove:${{ github.sha }}"
-            echo "siriwan/wordmove:php8.2"
-            echo "siriwan/wordmove:php8.2-${{ github.sha }}"
+            echo "siriwan/wordmove:${PHP}"
+            echo "siriwan/wordmove:${PHP}-${{ github.sha }}"
             if [ "$changed" = "true" ]; then
               echo "siriwan/wordmove:${VERSION}"
-              echo "siriwan/wordmove:php8.2-${VERSION}"
+              echo "siriwan/wordmove:${PHP}-${VERSION}"
             fi
             echo "__EOF__"
           } >> "$GITHUB_OUTPUT"

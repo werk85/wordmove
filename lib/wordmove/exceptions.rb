@@ -9,4 +9,5 @@ module Wordmove
   class LocalHookException < StandardError; end
   class LocalPathNotFound < StandardError; end
   class RemotePathNotFound < StandardError; end
+  class MissingExecutable < StandardError; end
 end

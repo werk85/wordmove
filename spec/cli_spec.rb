@@ -31,6 +31,27 @@ describe Wordmove::CLI do
     end
   end
 
+  context "#connect" do
+    it "delegates to Connector with -e and -c" do
+      connector = instance_double(Wordmove::Connector)
+      expect(Wordmove::Connector).to receive(:new)
+        .with(hash_including(environment: "staging", config: "my_movefile"))
+        .and_return(connector)
+      expect(connector).to receive(:connect!)
+
+      Wordmove::CLI.start(["connect", "-e", "staging", "-c", "my_movefile"])
+    end
+
+    it "exits with 1 when no protocol is configured" do
+      args = ["connect", "-e", "missing_protocol", "-c", movefile_path_for("multi_environments")]
+      expect { silence_stream($stdout) { Wordmove::CLI.start(args) } }.to raise_error(SystemExit) { |e| expect(e.status).to eq(1) }
+    end
+
+    it "exits with 1 without a movefile" do
+      expect { silence_stream($stdout) { cli.invoke(:connect, []) } }.to raise_error SystemExit
+    end
+  end
+
   context "#list" do
     subject { cli.invoke(:list, []) }
     let(:list_class) { Wordmove::EnvironmentsList }
